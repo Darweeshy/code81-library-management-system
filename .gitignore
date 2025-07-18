@@ -1,0 +1,24 @@
+# Build artifacts
+target/
+*.jar
+*.war
+*.ear
+
+# IDE files
+.idea/
+*.iml
+*.iws
+.project
+.classpath
+.settings/
+
+# Log files
+*.log
+
+# Maven
+.mvn/
+mvnw
+mvnw.cmd
+
+, name it this way to ignore it
+application-local.properties

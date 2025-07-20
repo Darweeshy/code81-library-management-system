@@ -38,7 +38,6 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // public auth endpoints
                         .requestMatchers("/api/auth/**").permitAll()
 
                         // book endpoints: GETs are public

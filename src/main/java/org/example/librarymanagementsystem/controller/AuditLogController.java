@@ -29,7 +29,7 @@ public class AuditLogController {
                 .map(log -> new AuditLogSimpleDto(
                         log.getUsername(),
                         log.getRole() != null ? log.getRole().name() : null,
-                        log.getAction().name(), // ✅ FIXED
+                        log.getAction().name(),
                         log.getDetails(),
                         log.getTimestamp()
                 ))

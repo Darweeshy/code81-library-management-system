@@ -1,11 +1,17 @@
 package org.example.librarymanagementsystem.model;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import org.example.librarymanagementsystem.enums.RoleType;
+import lombok.*;
+import org.example.librarymanagementsystem.enums.ERole;
 
-@Data
+import java.util.HashSet;
+import java.util.Set;
+
 @Entity
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Table(name = "roles")
 public class Role {
 
@@ -14,6 +20,6 @@ public class Role {
     private Long id;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, unique = true)
-    private RoleType name;
+    @Column(length = 20, nullable = false, unique = true)
+    private ERole name;
 }

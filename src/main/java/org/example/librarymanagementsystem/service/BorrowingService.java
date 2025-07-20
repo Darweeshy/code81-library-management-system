@@ -13,6 +13,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -82,4 +84,14 @@ public class BorrowingService {
 
         return dto;
     }
+    @Transactional(readOnly = true)
+    public List<TransactionResponseDto> getOverdueTransactions() {
+        LocalDate today = LocalDate.now();
+        List<BorrowingTransaction> overdue = transactionRepository.findByDueDateBeforeAndReturnDateIsNull(today);
+        return overdue.stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+    }
+
+
 }

@@ -1,15 +1,19 @@
 package org.example.librarymanagementsystem.model;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-
+import lombok.*;
 import java.util.Set;
 
-@EqualsAndHashCode(callSuper = true)
-@Data
 @Entity
-@Table(name = "books")
+@Table(name = "books", indexes = {
+        @Index(name = "idx_title", columnList = "title"),
+        @Index(name = "idx_isbn", columnList = "isbn")
+})
+@Data
+@NoArgsConstructor          // Hibernate needs a no-arg constructor
+@AllArgsConstructor         // For Lombok’s @Builder
+@Builder
+@EqualsAndHashCode(callSuper = true)
 public class Book extends Auditable {
 
     @Id
@@ -27,6 +31,7 @@ public class Book extends Auditable {
 
     private String edition;
 
+    @Column(nullable = false)
     private int publicationYear;
 
     @Column(columnDefinition = "TEXT")
@@ -42,11 +47,11 @@ public class Book extends Auditable {
     )
     private Set<Author> authors;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "publisher_id")
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "publisher_id", nullable = false)
     private Publisher publisher;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "category_id")
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 }

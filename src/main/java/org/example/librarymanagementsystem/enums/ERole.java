@@ -1,7 +1,8 @@
 package org.example.librarymanagementsystem.enums;
 
-public enum RoleType {
+public enum ERole {
+    ROLE_USER,
     ROLE_ADMIN,
     ROLE_LIBRARIAN,
-    ROLE_MEMBER
+    ROLE_STAFF
 }

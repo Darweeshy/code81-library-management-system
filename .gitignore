@@ -20,5 +20,6 @@ target/
 mvnw
 mvnw.cmd
 
+
 , name it this way to ignore it
 application-local.properties

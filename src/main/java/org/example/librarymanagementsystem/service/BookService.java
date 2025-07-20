@@ -1,15 +1,19 @@
 package org.example.librarymanagementsystem.service;
-import java.util.Set;
+
 import lombok.RequiredArgsConstructor;
-import org.example.librarymanagementsystem.dto.BookDto; // Assuming you have this DTO
+import org.example.librarymanagementsystem.dto.BookCreationDto;
+import org.example.librarymanagementsystem.dto.BookDto;
 import org.example.librarymanagementsystem.model.Author;
 import org.example.librarymanagementsystem.model.Book;
+import org.example.librarymanagementsystem.model.Category;
 import org.example.librarymanagementsystem.model.Publisher;
 import org.example.librarymanagementsystem.repo.AuthorRepository;
 import org.example.librarymanagementsystem.repo.BookRepository;
+import org.example.librarymanagementsystem.repo.CategoryRepository;
 import org.example.librarymanagementsystem.repo.PublisherRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.HashSet;
 import java.util.List;
@@ -21,59 +25,110 @@ public class BookService {
 
     private final BookRepository bookRepository;
     private final AuthorRepository authorRepository;
+    private final CategoryRepository categoryRepository;
     private final PublisherRepository publisherRepository;
 
-    @Transactional
-    public BookDto createBook(BookDto bookDto) {
-        Book book = new Book();
-
-        // Find and set the publisher
-        Publisher publisher = publisherRepository.findById(bookDto.getPublisherId())
-                .orElseThrow(() -> new RuntimeException("Publisher not found with id: " + bookDto.getPublisherId()));
-        book.setPublisher(publisher);
-
-        // Find and set the authors
-        Set<Author> authors = new HashSet<>(authorRepository.findAllById(bookDto.getAuthorIds()));
-        if (authors.size() != bookDto.getAuthorIds().size()) {
-            throw new RuntimeException("One or more authors not found.");
+    public BookDto createBook(BookCreationDto dto) {
+        if (dto.getPublicationYear() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "publicationYear is required");
         }
-        book.setAuthors(authors);
 
-        // Set book details
-        book.setTitle(bookDto.getTitle());
-        book.setIsbn(bookDto.getIsbn());
+        // load & validate authors
+        List<Author> authors = authorRepository.findAllById(dto.getAuthorIds());
+        if (authors.size() != dto.getAuthorIds().size()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "One or more authors not found");
+        }
 
-        Book savedBook = bookRepository.save(book);
-        return convertToDto(savedBook);
+        Category category = categoryRepository.findById(dto.getCategoryId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Category not found"));
+        Publisher publisher = publisherRepository.findById(dto.getPublisherId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Publisher not found"));
+
+        Book book = Book.builder()
+                .isbn(dto.getIsbn())
+                .title(dto.getTitle())
+                .language(dto.getLanguage())
+                .edition(dto.getEdition())
+                .publicationYear(dto.getPublicationYear())
+                .summary(dto.getSummary())
+                .coverImageUrl(dto.getCoverImageUrl())
+                .authors(new HashSet<>(authors))
+                .category(category)
+                .publisher(publisher)
+                .build();
+
+        Book saved = bookRepository.save(book);
+        return mapToDto(saved);
     }
 
-    @Transactional(readOnly = true)
-    public List<BookDto> findAll() {
+    public List<BookDto> getAllBooks() {
         return bookRepository.findAll().stream()
-                .map(this::convertToDto)
+                .map(this::mapToDto)
                 .collect(Collectors.toList());
     }
 
-    // You would add methods for getById, update, delete, and search here...
-
-    private BookDto convertToDto(Book book) {
-        BookDto dto = new BookDto();
-        dto.setTitle(book.getTitle());
-        dto.setIsbn(book.getIsbn());
-        if (book.getPublisher() != null) {
-            dto.setPublisherId(book.getPublisher().getId());
-        }
-        if (book.getAuthors() != null) {
-            dto.setAuthorIds(book.getAuthors().stream()
-                    .map(Author::getId)
-                    .collect(Collectors.toSet()));
-        }
-        return dto;
+    public BookDto getBookById(Long id) {
+        Book book = bookRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Book not found"));
+        return mapToDto(book);
     }
 
-    public void deleteBook(Long id)
-    {
-        bookRepository.deleteById(id);
+    public BookDto updateBook(Long id, BookCreationDto dto) {
+        Book existing = bookRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Book not found"));
 
+        if (dto.getPublicationYear() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "publicationYear is required");
+        }
+
+        // validate authors again
+        List<Author> authors = authorRepository.findAllById(dto.getAuthorIds());
+        if (authors.size() != dto.getAuthorIds().size()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "One or more authors not found");
+        }
+
+        Category category = categoryRepository.findById(dto.getCategoryId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Category not found"));
+        Publisher publisher = publisherRepository.findById(dto.getPublisherId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Publisher not found"));
+
+        existing.setIsbn(dto.getIsbn());
+        existing.setTitle(dto.getTitle());
+        existing.setLanguage(dto.getLanguage());
+        existing.setEdition(dto.getEdition());
+        existing.setPublicationYear(dto.getPublicationYear());
+        existing.setSummary(dto.getSummary());
+        existing.setCoverImageUrl(dto.getCoverImageUrl());
+        existing.setAuthors(new HashSet<>(authors));
+        existing.setCategory(category);
+        existing.setPublisher(publisher);
+
+        Book updated = bookRepository.save(existing);
+        return mapToDto(updated);
+    }
+
+    public void deleteBook(Long id) {
+        if (!bookRepository.existsById(id)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Book not found");
+        }
+        bookRepository.deleteById(id);
+    }
+
+    private BookDto mapToDto(Book b) {
+        return new BookDto(
+                b.getId(),
+                b.getIsbn(),
+                b.getTitle(),
+                b.getLanguage(),
+                b.getEdition(),
+                b.getPublicationYear(),
+                b.getSummary(),
+                b.getCoverImageUrl(),
+                b.getAuthors().stream().map(Author::getId).collect(Collectors.toList()),
+                b.getPublisher().getId(),
+                b.getCategory().getId(),
+                b.getCreatedAt(),
+                b.getUpdatedAt()
+        );
     }
 }

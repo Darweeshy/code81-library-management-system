@@ -2,6 +2,9 @@ package org.example.librarymanagementsystem.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.example.librarymanagementsystem.enums.AuditAction;
+import org.example.librarymanagementsystem.enums.ERole;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -16,10 +19,20 @@ public class AuditLog {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false)
     private String username;
-    private String action;       // e.g., LOGIN_SUCCESS, LOGIN_FAILED
-    private LocalDateTime timestamp;
-    private String ipAddress;    // optional
 
-    private String details;      // e.g., error messages
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private ERole role;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private AuditAction action;
+
+    @Column(nullable = false)
+    private LocalDateTime timestamp;
+
+    @Column(columnDefinition = "TEXT")
+    private String details; // optional debug/error info
 }

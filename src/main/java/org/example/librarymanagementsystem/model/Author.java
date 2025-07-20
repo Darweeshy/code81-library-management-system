@@ -2,8 +2,7 @@ package org.example.librarymanagementsystem.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.*;
 
 import java.util.Set;
 
@@ -11,6 +10,9 @@ import java.util.Set;
 @Data
 @Entity
 @Table(name = "authors")
+@NoArgsConstructor
+@Builder
+@AllArgsConstructor
 public class Author extends Auditable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -4,24 +4,20 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class BookDto {
-    private Long id;
+public class BookCreationDto {
     private String isbn;
     private String title;
     private String language;
     private String edition;
-    private Integer publicationYear;
+    private Integer publicationYear;   // required
     private String summary;
     private String coverImageUrl;
-    private List<Long> authorIds;
+    private List<Long> authorIds;      // multi-authors
     private Long publisherId;
     private Long categoryId;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
 }
